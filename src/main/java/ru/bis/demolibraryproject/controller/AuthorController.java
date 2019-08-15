@@ -44,7 +44,6 @@ public class AuthorController {
         if (author == null) {
             return new ResponseEntity("Author not found", HttpStatus.NOT_FOUND);
         }
-        //TODO Вернуть объект. При простом возвращении объекта автора у которого есть книга получаем переполнениие стека.
         return new ResponseEntity(author, HttpStatus.OK);
     }
 
