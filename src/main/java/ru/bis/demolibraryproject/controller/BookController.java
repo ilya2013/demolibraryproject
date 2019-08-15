@@ -9,7 +9,6 @@ import ru.bis.demolibraryproject.model.Author;
 import ru.bis.demolibraryproject.model.Book;
 import ru.bis.demolibraryproject.repository.AuthorRepository;
 import ru.bis.demolibraryproject.repository.BookRepository;
-import ru.bis.demolibraryproject.specification.AuthorSpecificationsBuilder;
 import ru.bis.demolibraryproject.specification.BookSpecificationsBuilder;
 
 import java.util.List;
@@ -19,31 +18,27 @@ import java.util.stream.Collectors;
 @RequestMapping("/books")
 public class BookController {
     @Autowired
-    BookRepository bookRepository;
+    private BookRepository bookRepository;
     @Autowired
-    AuthorRepository authorRepository;
+    private AuthorRepository authorRepository;
 
-    @PostMapping("/new/{title}/{language}/{authorid}")
+    @PostMapping("/{title}/{language}/{authorid}")
     public ResponseEntity add(@PathVariable String title, @PathVariable String language, @PathVariable Long authorid) {
-        if (title.isEmpty() || title.isEmpty() || authorid == null) return new ResponseEntity("Empty", HttpStatus.OK);
         Author author = authorRepository.findById(authorid).orElse(null);
-        if (author == null) return new ResponseEntity("No author", HttpStatus.OK);
+        if (author == null) return new ResponseEntity("No author", HttpStatus.NOT_FOUND);
         Book book = new Book(title, language, author);
-        bookRepository.save(book);
-        return new ResponseEntity("Added", HttpStatus.OK);
+        book = bookRepository.save(book);
+        return new ResponseEntity(book, HttpStatus.OK);
     }
 
-    @GetMapping("/book/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Book> get(@PathVariable Long id) {
-        if (id == null) {
-            return new ResponseEntity("Empty", HttpStatus.OK);
-        }
         Book book = null;
         book = bookRepository.findById(id).orElse(null);
         if (book == null) {
-            return new ResponseEntity("Book not found", HttpStatus.OK);
+            return new ResponseEntity("Book not found", HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity(book.getTitle(), HttpStatus.OK);
+        return new ResponseEntity(book, HttpStatus.OK);
     }
 
     /**
@@ -54,13 +49,12 @@ public class BookController {
      */
     @GetMapping("/authorName/{title}")
     public ResponseEntity<Book> get(@PathVariable String title) {
-        if (title == null) {
-            return new ResponseEntity("Empty", HttpStatus.OK);
-        }
-        Book book = null;
         BookSpecificationsBuilder bookSB = new BookSpecificationsBuilder();
         Specification specification = bookSB.with("title", ":", title).build();
         List<Book> books = bookRepository.findAll(specification);
+        if (books.isEmpty()) {
+            return new ResponseEntity("Book not found", HttpStatus.NOT_FOUND);
+        }
         List<Author> authors = books.stream()
                 .map(b -> b.getAuthor())
                 .distinct()
@@ -68,18 +62,11 @@ public class BookController {
         String authorsNames = authors.stream().
                 map(a -> a.getFullName() + " ").
                 collect(Collectors.joining());
-
-        if (books.isEmpty()) {
-            return new ResponseEntity("Book not found", HttpStatus.OK);
-        }
         return new ResponseEntity(authorsNames, HttpStatus.OK);
     }
 
-    @DeleteMapping("/del/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity delete(@PathVariable Long id) {
-        if (id == null) {
-            return new ResponseEntity("Empty", HttpStatus.OK);
-        }
         Book book = null;
         book = bookRepository.findById(id).orElse(null);
         if (book == null) {
@@ -89,16 +76,12 @@ public class BookController {
         return new ResponseEntity("Deleted", HttpStatus.OK);
     }
 
-    @PostMapping("/newTitle/{id}/{newTitle}")
+    @PutMapping("/{id}/{newTitle}")
     public ResponseEntity update(@PathVariable Long id, @PathVariable String newTitle) {
         String oldTitle;
-        if (id == null || newTitle == null) {
-            return new ResponseEntity("Empty", HttpStatus.OK);
-        }
-        Book book = null;
-        book = bookRepository.findById(id).orElse(null);
+        Book book = bookRepository.findById(id).orElse(null);
         if (book == null) {
-            return new ResponseEntity("Book not found", HttpStatus.OK);
+            return new ResponseEntity("Book not found", HttpStatus.NOT_FOUND);
         }
         oldTitle = book.getTitle();
         book.setTitle(newTitle);

@@ -19,16 +19,13 @@ public class AuthorSpecificationsBuilder<T> {
     }
 
     public Specification<T> build() {
-        if (params.size() == 0) {
+        if (params.isEmpty()) {
             return null;
         }
-
         List<Specification> specs = params.stream()
                 .map(AuthorSpecification::new)
                 .collect(Collectors.toList());
-
         Specification result = specs.get(0);
-
         for (int i = 1; i < params.size(); i++) {
             result = Specification.where(result)
                     .and(specs.get(i));

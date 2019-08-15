@@ -1,5 +1,6 @@
 package ru.bis.demolibraryproject.controller;
 
+import com.sun.xml.bind.v2.TODO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -16,53 +17,51 @@ import java.util.List;
 @RequestMapping("/authors")
 public class AuthorController {
     @Autowired
-    AuthorRepository authorRepository;
+    private AuthorRepository authorRepository;
     @Autowired
-    AuthorDTO authorDTO;
+    private AuthorDTO authorDTO;
 
-    @PostMapping("/name/{name}")
+    @PostMapping(value = "/{name}")
     public ResponseEntity add(@PathVariable String name) {
-        if (name.isEmpty()) return new ResponseEntity<>("Empty", HttpStatus.OK);
         Author author = new Author(name);
         authorRepository.save(author);
         return new ResponseEntity<>("SUCCES", HttpStatus.OK);
     }
 
-    @GetMapping("/author/{id}")
+    @PostMapping( consumes = "application/json")
+    public ResponseEntity addByJSON(@RequestBody Author author) throws Exception {
+        if (author.getId() != null || author.getFullName().isEmpty()) {
+            return new ResponseEntity("Check par", HttpStatus.BAD_REQUEST);
+        }
+        authorRepository.save(author);
+        return new ResponseEntity<>(author, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
     public ResponseEntity get(@PathVariable Long id) {
-        if (id == null) {return new ResponseEntity("Empty", HttpStatus.OK);}
         Author author = null;
         author = authorRepository.findById(id).orElse(null);
         if (author == null) {
-            return new ResponseEntity("Author not found", HttpStatus.OK);
+            return new ResponseEntity("Author not found", HttpStatus.NOT_FOUND);
         }
-        if (!author.getBookList().isEmpty()) {
-            for (Book book : author.getBookList()) {
-                System.out.println(book.getTitle());
-            }
-        }
-//        AuthorDTO tmp = authorDTO.toDTO(author);
-        return new ResponseEntity(String.valueOf(author.getBookList().size()), HttpStatus.OK);
+        //TODO Вернуть объект. При простом возвращении объекта автора у которого есть книга получаем переполнениие стека.
+        return new ResponseEntity(author, HttpStatus.OK);
     }
 
     @GetMapping("/name/{fullname}")
     public ResponseEntity get(@PathVariable String fullname) {
-        if (fullname == null) {return new ResponseEntity("Empty", HttpStatus.OK);}
         Author author = null;
         AuthorSpecificationsBuilder authorSB= new AuthorSpecificationsBuilder();
         Specification specification = authorSB.with("fullName", ":", fullname).build();
         List<Author> authors = authorRepository.findAll(specification);
-        if (authors.size() == 0) {
-            return new ResponseEntity("Author not found", HttpStatus.OK);
+        if (authors.isEmpty()) {
+            return new ResponseEntity("Author not found", HttpStatus.NOT_FOUND);
         }
-
-//        AuthorDTO tmp = authorDTO.toDTO(author);
-        return new ResponseEntity(String.valueOf(authors), HttpStatus.OK);
+        return new ResponseEntity(authors, HttpStatus.OK);
     }
 
-    @DeleteMapping("/del/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity delete(@PathVariable Long id) {
-        if (id == null) {return new ResponseEntity("Empty", HttpStatus.OK);}
         Author author = null;
         author = authorRepository.findById(id).orElse(null);
         if (author == null) {
@@ -72,19 +71,32 @@ public class AuthorController {
         return new ResponseEntity("Deleted", HttpStatus.OK);
     }
 
-    @PostMapping("/update/{id}/{fullname}")
+    @PutMapping("/{id}/{fullname}")
     public ResponseEntity update(@PathVariable Long id, @PathVariable String fullname) {
         String oldFullName;
-        if (id == null) {return new ResponseEntity("Empty", HttpStatus.OK);}
         Author author = null;
         author = authorRepository.findById(id).orElse(null);
         if (author == null) {
-            return new ResponseEntity("Author not found", HttpStatus.OK);
+            return new ResponseEntity("Author not found", HttpStatus.NOT_FOUND);
         }
         oldFullName = author.getFullName();
         author.setFullName(fullname);
         authorRepository.save(author);
         return new ResponseEntity(oldFullName + " -> " + author.getFullName(), HttpStatus.OK);
+    }
+
+    @PutMapping(consumes = "application/json")
+    public ResponseEntity update(@RequestBody Author author) {
+        Author oldAuthor;
+        if (author.getId() == null || author.getFullName().isEmpty()) {
+            return new ResponseEntity("Check par", HttpStatus.BAD_REQUEST);
+        }
+        oldAuthor = authorRepository.findById(author.getId()).orElse(null);
+        if (oldAuthor == null) {
+            return new ResponseEntity("Author not found", HttpStatus.NOT_FOUND);
+        }
+        author = authorRepository.save(author);
+        return new ResponseEntity(author, HttpStatus.OK);
     }
 
 }

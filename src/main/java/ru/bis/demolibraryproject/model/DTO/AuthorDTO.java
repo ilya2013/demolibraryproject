@@ -14,7 +14,7 @@ import java.util.List;
 public class AuthorDTO {
     private Long id;
     private String fullname;
-    private List<BookDTO> bookList = new ArrayList<>();
+    private List<BookDTO> books = new ArrayList<>();
 
     public AuthorDTO(Long id, String fullname) {
         this.id = id;
@@ -26,9 +26,9 @@ public class AuthorDTO {
 
     public static AuthorDTO toDTO(Author author) {
         AuthorDTO authorDTO = new AuthorDTO(author.getId(), author.getFullName());
-         if (!author.getBookList().isEmpty()) {
-             for (Book book: author.getBookList()) {
-                 authorDTO.getBookList().add(BookDTO.toDTO(book));
+         if (!author.getBooks().isEmpty()) {
+             for (Book book: author.getBooks()) {
+                 authorDTO.getBooks().add(BookDTO.toDTO(book));
              }
          }
              return authorDTO;

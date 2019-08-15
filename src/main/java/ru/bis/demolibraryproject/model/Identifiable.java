@@ -1,6 +1,7 @@
 package ru.bis.demolibraryproject.model;
 
 import lombok.Data;
+import lombok.Getter;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 
 
 @Data
+@Getter
 @MappedSuperclass
 public class Identifiable implements Comparable<Identifiable>, Serializable {
     @Id
@@ -38,12 +40,9 @@ public class Identifiable implements Comparable<Identifiable>, Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != Hibernate.getClass(o)) return false;
-
         Identifiable that = (Identifiable) o;
-
-        if (id != null ? !id.equals(that.getId()) : that.getId() != null) return false;
-
-        return true;
+        if (id == null || that.getId() == null) return false;
+        return id.equals(that.getId());
     }
 
     @Override

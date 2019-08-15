@@ -1,11 +1,9 @@
 package ru.bis.demolibraryproject.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Getter;
 import lombok.Setter;
-
 import javax.persistence.*;
-import java.io.Serializable;
-import java.util.Objects;
 
 
 @Entity
@@ -18,6 +16,7 @@ public class Book extends Identifiable {
     private String language;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
+    @JsonBackReference
     private Author author;
 
     public Book(String title, String language, Author author) {
