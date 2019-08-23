@@ -41,8 +41,17 @@ public class BookController {
         return new ResponseEntity(book, HttpStatus.OK);
     }
 
+    @GetMapping("title/{title}")
+    public ResponseEntity<Book> byTitle(@PathVariable String title) {
+        Book book = bookRepository.findByTitle(title);
+        if (book == null) {
+            return new ResponseEntity("Book not found", HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity(book, HttpStatus.OK);
+    }
+
     /**
-     * Поиск автора книги по её названию.
+     * Поиск авторов книг по вхождению первых симовлов title.
      *
      * @param title Заголовок
      * @return
@@ -67,13 +76,12 @@ public class BookController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity delete(@PathVariable Long id) {
-        Book book = null;
-        book = bookRepository.findById(id).orElse(null);
+        Book book = bookRepository.findById(id).orElse(null);
         if (book == null) {
-            return new ResponseEntity("Book not found", HttpStatus.OK);
+            return new ResponseEntity("Book not found", HttpStatus.NOT_FOUND);
         }
         bookRepository.delete(book);
-        return new ResponseEntity("Deleted", HttpStatus.OK);
+        return new ResponseEntity(book , HttpStatus.OK);
     }
 
     @PutMapping("/{id}/{newTitle}")
@@ -86,6 +94,6 @@ public class BookController {
         oldTitle = book.getTitle();
         book.setTitle(newTitle);
         bookRepository.save(book);
-        return new ResponseEntity(oldTitle + " -> " + book.getTitle(), HttpStatus.OK);
+        return new ResponseEntity(book, HttpStatus.OK);
     }
 }

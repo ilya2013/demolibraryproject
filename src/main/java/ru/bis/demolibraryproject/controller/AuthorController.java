@@ -1,16 +1,15 @@
 package ru.bis.demolibraryproject.controller;
 
-import com.sun.xml.bind.v2.TODO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.bis.demolibraryproject.model.Author;
-import ru.bis.demolibraryproject.model.Book;
 import ru.bis.demolibraryproject.model.DTO.AuthorDTO;
 import ru.bis.demolibraryproject.repository.AuthorRepository;
 import ru.bis.demolibraryproject.specification.AuthorSpecificationsBuilder;
+
 import java.util.List;
 
 @RestController
@@ -25,11 +24,11 @@ public class AuthorController {
     public ResponseEntity add(@PathVariable String name) {
         Author author = new Author(name);
         authorRepository.save(author);
-        return new ResponseEntity<>("SUCCES", HttpStatus.OK);
+        return new ResponseEntity<>(author, HttpStatus.OK);
     }
 
     @PostMapping( consumes = "application/json")
-    public ResponseEntity addByJSON(@RequestBody Author author) throws Exception {
+    public ResponseEntity addByJSON(@RequestBody Author author) {
         if (author.getId() != null || author.getFullName().isEmpty()) {
             return new ResponseEntity("Check par", HttpStatus.BAD_REQUEST);
         }
@@ -64,7 +63,7 @@ public class AuthorController {
         Author author = null;
         author = authorRepository.findById(id).orElse(null);
         if (author == null) {
-            return new ResponseEntity("Author not found", HttpStatus.OK);
+            return new ResponseEntity("Author not found", HttpStatus.NOT_FOUND);
         }
         authorRepository.delete(author);
         return new ResponseEntity("Deleted", HttpStatus.OK);
